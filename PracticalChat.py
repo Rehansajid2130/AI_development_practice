@@ -1,8 +1,10 @@
 
+import keyword
 import google.generativeai as genai 
 import requests
 
 Api_key = "Api_key"
+
 # # genai.configure(api_key = Api_key)
 # # model = genai.GenerativeModel("gemini-2.5-flash")
 # # response =model.generate_content("Explain python loops ")
@@ -28,6 +30,26 @@ from tkinter.filedialog import askopenfilename
 from pypdf import PdfReader
 
 text=""
+stop_words = [
+    "how",
+    "what",
+    "is",
+    "are",
+    "the",
+    "a",
+    "an",
+    "for",
+    "to",
+    "of",
+    "in",
+    "should",
+    "can",
+    "i",
+    "?",
+    ".",
+    "!",
+    "and",
+]
 
 def importtingFile():
     text = ""
@@ -46,15 +68,26 @@ def importtingFile():
         print("No file")
     return text
 
-def chunking():
-    chunks = text.split("\n\n")
+def chunking(prompt):
+    text = importtingFile()
+    chunks = text.split("\n")
+    question = prompt.lower()
+    words = question.split()
+
+    keywords = []
+
+    for word in words:
+        if word not in stop_words:
+            keywords.append(word)
+
     relevant_chunks =[]
-
     for chunk in chunks:
-        if "interview" in chunk.lower():
-            relevant_chunks.append(chunk)
-
+        for word in keywords:
+            if word.lower() in str(keywords).lower():
+                relevant_chunks.append(chunk)
+                break
     return relevant_chunks
+
 url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={Api_key}"
 
 history = []
@@ -66,10 +99,6 @@ while True:
         print("AI:bye")
         break
 
-    full_prompt = f""" You are a senior Python mentor.Explain simply.
-            Here's the question {prompt}
-            only write in short and straight forward and in simple english"""
-
     if prompt.lower().startswith("/sumrize"):
         full_prompt = f"""You are going to sumrize this {prompt}
         this should contain all the important infomation about the questions or paragraph """ 
@@ -80,16 +109,14 @@ while True:
     elif prompt.lower().startswith("/explain"):
         full_prompt = f"""Deeply explain this topic {prompt} with proper explaination and don't write the things that are not related to the question """
     elif prompt.lower().startswith("/file"):
-        text = importtingFile()
-        chunk = chunking()
-        prompting = ""
+        chunk = chunking(prompt)
         full_prompt = f""" analyze this file chunk {chunk} and there will be questions from this file and answer only the answer from this file and don't overwrite about the question
         Here's the question {prompt}"""
         current_doc = chunk
     else:
-        full_prompt = f"Analyze the history for the context of the chat here's the question {prompt}"
+        full_prompt = f"Analyze the history if there is for the context of the chat here's the question {prompt}"
 
-    combined = f"history :{history}if file is not attached then here should be nothing:{current_doc} question:{full_prompt}"
+    combined = f"history file is this but if there is nothing in it so don't mention it:{history} if there is a response already answered before then don't mention anything about it and generate the answer but in different way or write a summary version of it. if there is a content of the file then use the file to answer the question and if you are using the content of the file always say 'According to the attached file '{current_doc} question:{full_prompt}"
     data = {
         "contents" :[
             {
@@ -109,7 +136,8 @@ while True:
     )
     history.append({
         "role":"user",
-        "content": prompt
+        "content": prompt,
+        "file_content":chunk
     })
 
     if response.status_code == 200:
