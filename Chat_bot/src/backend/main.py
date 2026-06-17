@@ -1,5 +1,4 @@
-from email import message
-from enum import unique
+from os import wait
 from fastapi import FastAPI
 import requests
 from tkinter import Tk
@@ -24,7 +23,7 @@ ID = 0
 def chat(data: dict,RecivedMessage):
 
     RecivedMessage = data.get("message","")
-    Aireply = CallingAi()
+    Aireply = CallingAi(RecivedMessage)
     reply = {Replymessage:f"{Aireply}",id:ID}
     return {
         "reply":reply
@@ -91,9 +90,9 @@ def chunking(prompt):
 
 
 
-def CallingAi():
+def CallingAi(RecivedMessage):
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={Api_key}"
-
+    print("Workingggg")
     history = []
     while True:
         current_doc = ""

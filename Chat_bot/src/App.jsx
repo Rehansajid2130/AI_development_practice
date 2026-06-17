@@ -18,6 +18,8 @@ const App = () => {
         body: JSON.stringify({message: UserMessage})
       }
     )
+      console.log(UserMessage);
+      
       const RecivedMessage = await response.json()
     console.log(RecivedMessage);
   }
@@ -38,7 +40,6 @@ const App = () => {
         DataFetching()
         setChat((prevChat ) =>[...Chat, UserMessage])
         setUserMessage("")
-        console.log(Chat);
       }}>Send</button>
       <div>
         {
